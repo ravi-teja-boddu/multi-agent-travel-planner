@@ -4,6 +4,8 @@ A multi-agent system built with [LangGraph](https://langchain-ai.github.io/langg
 
 This is the Python version of `Multi-Agent Travel Planner.ipynb`.
 
+New to the code? [`docs/code-map.html`](docs/code-map.html) is a visual guide with flow, sequence and class diagrams and beginner explanations of the Python used. Download it and open it in a browser; GitHub shows HTML files as source code.
+
 ---
 
 ## What it does
@@ -58,6 +60,7 @@ multi_agent_travel_planner/
 │   ├── tools.py                # search_flights, search_hotels, Tavily search
 │   ├── agents.py               # Chat model, itinerary deep agent, standalone agents
 │   └── graph.py                # State, nodes, graph wiring, TravelPlanner class
+├── docs/code-map.html          # Visual guide: diagrams + Python explanations
 ├── tests/test_graph.py         # Offline tests (fake LLM, no API keys)
 ├── requirements.txt            # Runtime dependencies
 ├── requirements-dev.txt        # + pytest

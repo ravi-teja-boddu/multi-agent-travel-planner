@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Travel Planner Code Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,750&family=Instrument+Sans:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a single reading column with a route-style section index; diagrams sit in wide scroll boxes. */
+:root {
+  --bg: #f4f7f6;
+  --surface: #ffffff;
+  --ink: #15232a;
+  --muted: #55666d;
+  --line: #d6e0de;
+  --accent: #0d6e6e;
+  --accent-soft: #e0f0ee;
+  --gate: #b9640b;
+  --gate-soft: #fbefe0;
+  --code-bg: #eef3f2;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --step--1: 0.85rem;
+  --step-0: 1rem;
+  --step-1: 1.2rem;
+  --step-2: 1.6rem;
+  --step-3: 2.4rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0f1719;
+    --surface: #162125;
+    --ink: #e3ecea;
+    --muted: #9db0b2;
+    --line: #2a3a3e;
+    --accent: #5cc4bd;
+    --accent-soft: #173533;
+    --gate: #f0a75a;
+    --gate-soft: #3a2a17;
+    --code-bg: #1b282c;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0f1719;
+  --surface: #162125;
+  --ink: #e3ecea;
+  --muted: #9db0b2;
+  --line: #2a3a3e;
+  --accent: #5cc4bd;
+  --accent-soft: #173533;
+  --gate: #f0a75a;
+  --gate-soft: #3a2a17;
+  --code-bg: #1b282c;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.6;
+  padding-block: 0 4rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 3.5rem; }
+.prose { max-width: 68ch; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: var(--step-3); font-weight: 750; letter-spacing: -0.02em; }
+h2 { font-size: var(--step-2); font-weight: 750; }
+h3 { font-size: var(--step-1); font-weight: 600; }
+p { margin: 0; }
+a { color: var(--accent); }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--gate); outline-offset: 2px; border-radius: 3px; }
+code { font-family: var(--font-mono); font-size: 0.88em; background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 4px; }
+.eyebrow { font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.muted { color: var(--muted); }
+
+header.top { padding-block: 3rem 0; display: grid; gap: 1rem; }
+header.top p { font-size: var(--step-1); color: var(--muted); max-width: 60ch; }
+
+/* Route index: the sections really are an ordered path through the code */
+nav.route { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding-block: 1rem; }
+nav.route ol { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; counter-reset: stop; }
+nav.route li { counter-increment: stop; display: flex; align-items: center; gap: 0.4rem; font-size: var(--step--1); }
+nav.route li::before { content: counter(stop); font-family: var(--font-mono); font-size: 0.75rem; width: 1.5rem; height: 1.5rem; border-radius: 50%; border: 1.5px solid var(--accent); color: var(--accent); display: inline-grid; place-items: center; }
+nav.route a { color: var(--ink); text-decoration: none; }
+nav.route a:hover { color: var(--accent); text-decoration: underline; }
+
+section { display: grid; gap: 1.25rem; scroll-margin-top: 1rem; }
+.sec-head { display: grid; gap: 0.35rem; }
+
+.diagram { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.25rem; overflow-x: auto; }
+.diagram pre.mermaid { margin: 0; background: transparent; min-width: 560px; text-align: center; }
+.caption { font-size: var(--step--1); color: var(--muted); }
+
+.tip { background: var(--gate-soft); border-left: 3px solid var(--gate); padding: 0.85rem 1rem; border-radius: 0 8px 8px 0; max-width: 72ch; }
+.tip strong { color: var(--gate); }
+
+.table-box { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.93rem; }
+th, td { text-align: left; padding: 0.65rem 0.85rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 600; background: var(--code-bg); }
+tr:last-child td { border-bottom: 0; }
+td.step { font-family: var(--font-mono); color: var(--accent); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+.node { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.1rem; display: grid; gap: 0.45rem; align-content: start; }
+.node h3 { font-family: var(--font-mono); font-size: 0.95rem; color: var(--accent); }
+.node p { font-size: 0.93rem; }
+.node .where { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+
+/* Python concept cards */
+details.concept { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+details.concept + details.concept { margin-top: 0.6rem; }
+details.concept summary { cursor: pointer; padding: 0.85rem 1.1rem; display: flex; gap: 0.75rem; align-items: baseline; flex-wrap: wrap; list-style: none; }
+details.concept summary::-webkit-details-marker { display: none; }
+details.concept summary::before { content: "+"; font-family: var(--font-mono); color: var(--accent); width: 1ch; }
+details.concept[open] summary::before { content: "−"; }
+details.concept summary .name { font-weight: 600; }
+details.concept summary .file { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+.concept-body { padding: 0 1.1rem 1.1rem 2.6rem; display: grid; gap: 0.75rem; }
+pre.code { margin: 0; background: var(--code-bg); border-radius: 8px; padding: 0.85rem 1rem; overflow-x: auto; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.55; }
+pre.code .c { color: var(--muted); font-style: italic; }
+pre.code .k { color: var(--accent); font-weight: 600; }
+
+ol.reading { margin: 0; padding-left: 1.4rem; display: grid; gap: 0.6rem; max-width: 72ch; }
+ol.reading li::marker { font-family: var(--font-mono); color: var(--accent); }
+
+dl.glossary { display: grid; grid-template-columns: max-content 1fr; gap: 0.5rem 1.25rem; margin: 0; max-width: 80ch; }
+dl.glossary dt { font-family: var(--font-mono); font-size: 0.88rem; color: var(--accent); }
+dl.glossary dd { margin: 0; }
+@media (max-width: 560px) {
+  dl.glossary { grid-template-columns: 1fr; gap: 0.15rem; }
+  dl.glossary dd { margin-bottom: 0.6rem; }
+  h1 { font-size: 2rem; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+html { scroll-behavior: smooth; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <span class="eyebrow">multi_agent_travel_planner · guide for Python beginners</span>
+  <h1>Travel Planner Code Map</h1>
+  <p>How your question travels through the code, which file does what, and the Python ideas you'll meet on the way. Read top to bottom; each stop builds on the one before.</p>
+</header>
+
+<nav class="route" aria-label="Sections">
+  <ol>
+    <li><a href="#big-picture">Big picture</a></li>
+    <li><a href="#files">The files</a></li>
+    <li><a href="#startup">Startup</a></li>
+    <li><a href="#graph">The graph</a></li>
+    <li><a href="#journey">One question, end to end</a></li>
+    <li><a href="#loop">The tool loop</a></li>
+    <li><a href="#classes">Class diagram</a></li>
+    <li><a href="#python">Python ideas</a></li>
+    <li><a href="#reading">Reading order</a></li>
+  </ol>
+</nav>
+
+<!-- 1 -->
+<section id="big-picture">
+  <div class="sec-head"><span class="eyebrow">Stop 1</span><h2>The big picture</h2></div>
+  <p class="prose">Think of the program as a small travel agency. A <strong>receptionist</strong> (the orchestrator) reads your request and passes it to the right <strong>specialists</strong>. One specialist books flights and hotels, the other plans trips. They can work at the same time. Finally an <strong>editor</strong> (the synthesizer) combines their notes into one answer.</p>
+  <div class="diagram">
+<pre class="mermaid">
+flowchart LR
+    U["You type a question"] --> O["Orchestrator&lt;br/&gt;decides who should answer"]
+    O --> S["Search agent&lt;br/&gt;flights and hotels"]
+    O --> P["Planner agent&lt;br/&gt;tips and itineraries"]
+    S --> SY["Synthesizer&lt;br/&gt;merges the answers"]
+    P --> SY
+    SY --> A["One final answer"]
+</pre>
+  </div>
+  <p class="caption">If your question only needs one specialist, only that one runs, and the synthesizer passes its answer straight through.</p>
+</section>
+
+<!-- 2 -->
+<section id="files">
+  <div class="sec-head"><span class="eyebrow">Stop 2</span><h2>The files and how they connect</h2></div>
+  <p class="prose">Each arrow means "imports something from". <code>main.py</code> is the front door; <code>graph.py</code> is the heart; the other files supply parts.</p>
+  <div class="diagram">
+<pre class="mermaid">
+flowchart TD
+    M["main.py&lt;br/&gt;command line: chat or one question"] --> G["travel_planner/graph.py&lt;br/&gt;TravelPlanner class + the graph"]
+    G --> AG["agents.py&lt;br/&gt;chat model + itinerary deep agent"]
+    G --> T["tools.py&lt;br/&gt;search_flights, search_hotels, web search"]
+    G --> C["config.py&lt;br/&gt;reads API keys from .env"]
+    G --> PR["prompts.py&lt;br/&gt;instructions for every agent"]
+    AG --> C
+    AG --> PR
+    AG --> T
+    M --> C
+    TE["tests/test_graph.py&lt;br/&gt;checks the graph with a fake AI"] -.-> G
+</pre>
+  </div>
+  <div class="table-box">
+    <table>
+      <thead><tr><th>File</th><th>What it does</th><th>Main things inside</th></tr></thead>
+      <tbody>
+        <tr><td><code>main.py</code></td><td>Reads what you typed in the terminal, starts the planner, prints answers.</td><td><code>main()</code>, <code>chat()</code>, <code>answer()</code>, <code>parse_args()</code></td></tr>
+        <tr><td><code>config.py</code></td><td>Loads your <code>.env</code> file and checks that the three API keys exist.</td><td><code>Settings</code>, <code>MissingAPIKeyError</code></td></tr>
+        <tr><td><code>prompts.py</code></td><td>Plain text instructions that tell each AI agent how to behave. No logic.</td><td><code>ROUTER_PROMPT</code>, <code>TRAVEL_SCOUT_PROMPT</code>, …</td></tr>
+        <tr><td><code>tools.py</code></td><td>Functions the AI can call to get real data from SerpAPI and Tavily.</td><td><code>search_flights</code>, <code>search_hotels</code>, <code>create_internet_search()</code></td></tr>
+        <tr><td><code>agents.py</code></td><td>Creates the OpenAI model and the deep-research itinerary agent.</td><td><code>create_llm()</code>, <code>create_itinerary_tool()</code></td></tr>
+        <tr><td><code>graph.py</code></td><td>Defines the steps (nodes), how they connect, and the shared memory (state).</td><td><code>build_travel_planner_graph()</code>, <code>TravelPlanner</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 3 -->
+<section id="startup">
+  <div class="sec-head"><span class="eyebrow">Stop 3</span><h2>What happens when you run <code>python main.py</code></h2></div>
+  <p class="prose">Python runs <code>main.py</code> from the top. The last lines, <code>if __name__ == "__main__": sys.exit(main())</code>, call <code>main()</code>. Here is what <code>main()</code> does, function by function.</p>
+  <div class="diagram">
+<pre class="mermaid">
+flowchart TD
+    A["main()"] --> B["parse_args()&lt;br/&gt;read options like -v, -t, --graph"]
+    B --> C["TravelPlanner()&lt;br/&gt;runs __init__"]
+    C --> D["Settings.from_env()&lt;br/&gt;load .env"]
+    D --> E{"require_keys()&lt;br/&gt;all 3 keys present?"}
+    E -- "no" --> X["print error, exit with code 1"]
+    E -- "yes" --> F["create_llm()&lt;br/&gt;ChatOpenAI model"]
+    F --> G["create_internet_search()&lt;br/&gt;Tavily tool"]
+    G --> H["create_itinerary_tool()&lt;br/&gt;wraps the deep agent"]
+    H --> I["build_travel_planner_graph()&lt;br/&gt;wire nodes + edges, compile"]
+    I --> J{"Which mode?"}
+    J -- "--graph" --> K["print Mermaid diagram"]
+    J -- "a question was typed" --> L["answer() once"]
+    J -- "nothing typed" --> M["chat()&lt;br/&gt;loop: input → answer()"]
+    L --> N["planner.run()&lt;br/&gt;graph.invoke(...)"]
+    M --> N
+</pre>
+  </div>
+  <div class="tip"><strong>Key point.</strong> Building the planner makes no paid API calls. It only creates objects. The paid calls start inside <code>graph.invoke(...)</code>, when the graph actually runs.</div>
+</section>
+
+<!-- 4 -->
+<section id="graph">
+  <div class="sec-head"><span class="eyebrow">Stop 4</span><h2>The graph: nodes and edges</h2></div>
+  <p class="prose">LangGraph runs your program as a map of steps. Each <strong>node</strong> is a normal Python function that receives the shared <strong>state</strong> (a dictionary) and returns the parts it wants to change. <strong>Edges</strong> decide which node runs next. Solid arrows always happen; dotted arrows are decisions.</p>
+  <div class="diagram">
+<pre class="mermaid">
+flowchart TD
+    START(["START"]) --> O["orchestrator"]
+    O -. "Send (parallel)" .-> SA["search_agent_node"]
+    O -. "Send (parallel)" .-> PA["planner_agent_node"]
+    SA -. "wants a tool" .-> ST["search_tool_node"]
+    ST --> SA
+    SA -. "finished" .-> SY["synthesizer"]
+    PA -. "wants a tool" .-> PT["planner_tool_node"]
+    PT --> PA
+    PA -. "finished" .-> SY
+    SY --> END(["END"])
+</pre>
+  </div>
+  <div class="grid-2">
+    <div class="node">
+      <h3>orchestrator</h3>
+      <p>Asks the AI to fill in a <code>ClassificationResult</code>: a list of tasks, at most one per agent. It also clears last turn's results so they don't leak into this answer.</p>
+      <span class="where">graph.py · orchestrator()</span>
+    </div>
+    <div class="node">
+      <h3>dispatch_to_agents</h3>
+      <p>Not a node; it's the decision on the orchestrator's arrows. It returns one <code>Send</code> per task, which starts the agents at the same time.</p>
+      <span class="where">graph.py · dispatch_to_agents()</span>
+    </div>
+    <div class="node">
+      <h3>search_agent_node</h3>
+      <p>Talks to the AI using the flight/hotel prompt. The AI either asks to call a tool or gives its final answer.</p>
+      <span class="where">graph.py · search_agent_node()</span>
+    </div>
+    <div class="node">
+      <h3>search_tool_node</h3>
+      <p>Runs the tool the AI asked for (<code>search_flights</code> or <code>search_hotels</code>) and stores the result, then goes back to the agent.</p>
+      <span class="where">graph.py · search_tool_node()</span>
+    </div>
+    <div class="node">
+      <h3>planner_agent_node</h3>
+      <p>Same pattern with the travel-scout prompt. Its tools are web search and the itinerary deep agent.</p>
+      <span class="where">graph.py · planner_agent_node()</span>
+    </div>
+    <div class="node">
+      <h3>planner_tool_node</h3>
+      <p>Runs <code>tavily_search</code> or <code>itinerary_research_agent</code>. The itinerary agent is a whole agent of its own, so this can take a minute.</p>
+      <span class="where">graph.py · planner_tool_node()</span>
+    </div>
+    <div class="node">
+      <h3>synthesizer</h3>
+      <p>Counts results. If an agent is still working it returns <code>{}</code> (no change) and waits. With one result it passes it through; with two it asks the AI to merge them.</p>
+      <span class="where">graph.py · synthesizer()</span>
+    </div>
+    <div class="node">
+      <h3>route_search / route_planner</h3>
+      <p>The small decision functions on the dotted arrows. They look at the agent's last message: tool calls → go to the tool node, otherwise → synthesizer.</p>
+      <span class="where">graph.py · route_search(), route_planner()</span>
+    </div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section id="journey">
+  <div class="sec-head"><span class="eyebrow">Stop 5</span><h2>One question, start to finish</h2></div>
+  <p class="prose">Example question: <em>"Plan 3 days in Rome and find hotels for 2 adults from 2027-03-10 to 2027-03-13."</em> It needs both specialists, so this is the longest path through the code. Time runs from top to bottom.</p>
+  <div class="diagram">
+<pre class="mermaid">
+sequenceDiagram
+    actor You
+    participant Main as main.py
+    participant TP as TravelPlanner
+    participant Orc as orchestrator
+    participant SA as search agent
+    participant Serp as SerpAPI
+    participant PA as planner agent
+    participant Deep as itinerary deep agent
+    participant Tav as Tavily
+    participant Syn as synthesizer
+    You->>Main: types the question
+    Main->>TP: run(query, thread_id)
+    TP->>Orc: graph.invoke(state)
+    Orc->>Orc: AI splits it into 2 tasks
+    par at the same time
+        Orc->>SA: Send("hotels in Rome, 10-13 Mar, 2 adults")
+        SA->>Serp: search_hotels(...)
+        Serp-->>SA: hotel list as JSON
+        SA->>Syn: hotel recommendations
+    and
+        Orc->>PA: Send("3-day Rome itinerary")
+        PA->>Deep: itinerary_research_agent(query)
+        Deep->>Tav: several web searches
+        Tav-->>Deep: articles and facts
+        Deep-->>PA: day-by-day plan
+        PA->>Syn: itinerary
+    end
+    Syn->>Syn: wait until 2 results, then AI merges them
+    Syn-->>TP: final_answer
+    TP-->>Main: state
+    Main-->>You: prints the answer
+</pre>
+  </div>
+
+  <h3>How the state changes along the way</h3>
+  <p class="prose muted">The state is one Python dictionary that every node can read. Each row shows what a node writes into it.</p>
+  <div class="table-box">
+    <table>
+      <thead><tr><th>Step</th><th>Node</th><th>What it writes into the state</th></tr></thead>
+      <tbody>
+        <tr><td class="step">0</td><td><code>run()</code></td><td><code>user_query</code> = your text; <code>messages</code> gets your question added to the chat history.</td></tr>
+        <tr><td class="step">1</td><td>orchestrator</td><td><code>tasks</code> = 2 <code>AgentTask</code> objects; <code>agent_results</code>, <code>search_messages</code>, <code>planner_messages</code> are emptied for this turn.</td></tr>
+        <tr><td class="step">2</td><td>search_agent_node</td><td><code>search_messages</code> += your sub-question and the AI's reply, which asks for <code>search_hotels</code>.</td></tr>
+        <tr><td class="step">2</td><td>planner_agent_node</td><td><code>planner_messages</code> += sub-question and a reply asking for <code>itinerary_research_agent</code>. Runs in the same step as the search agent.</td></tr>
+        <tr><td class="step">3</td><td>both tool nodes</td><td>Each adds a <code>ToolMessage</code> with the tool's output to its own message list.</td></tr>
+        <tr><td class="step">4</td><td>both agent nodes</td><td>The AI reads the tool output and writes a final answer. Each adds one entry to <code>agent_results</code>.</td></tr>
+        <tr><td class="step">5</td><td>synthesizer</td><td><code>final_answer</code> = merged text; <code>messages</code> += the answer, so the next question can refer back to it.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="tip"><strong>Why two lists of messages?</strong> The two agents run at the same time. If they wrote into one shared list, their messages would get mixed up. So each agent has its own private list: <code>search_messages</code> and <code>planner_messages</code>.</div>
+</section>
+
+<!-- 6 -->
+<section id="loop">
+  <div class="sec-head"><span class="eyebrow">Stop 6</span><h2>The agent ↔ tool loop</h2></div>
+  <p class="prose">Both agents work the same way. The AI can't search the internet itself. It replies with a <em>request</em> ("please call <code>search_hotels</code> with these arguments"). Our code runs the function and hands the result back. This repeats until the AI answers without asking for a tool.</p>
+  <div class="diagram">
+<pre class="mermaid">
+flowchart TD
+    A["agent node calls the AI&lt;br/&gt;prompt + messages so far"] --> B{"Does the reply contain tool_calls?"}
+    B -- "yes" --> C["tool node&lt;br/&gt;_run_tool_calls() runs each function"]
+    C --> D["add ToolMessage with the result"]
+    D --> A
+    B -- "no" --> E["save reply in agent_results"]
+    E --> F["go to synthesizer"]
+</pre>
+  </div>
+  <p class="caption">Safety net: <code>--recursion-limit</code> (default 50) stops the loop if it ever runs too many steps.</p>
+</section>
+
+<!-- 7 -->
+<section id="classes">
+  <div class="sec-head"><span class="eyebrow">Stop 7</span><h2>Class diagram</h2></div>
+  <p class="prose">A <strong>class</strong> is a blueprint for an object: it lists the data the object holds (top half of each box) and the functions it has, called methods (bottom half). <code>&lt;|--</code> arrows mean "is a kind of" (inheritance). Plain arrows mean "uses" or "contains".</p>
+  <div class="diagram">
+<pre class="mermaid">
+classDiagram
+    direction TB
+    class TravelPlanner {
+        +Settings settings
+        +CompiledGraph graph
+        +run(query, thread_id) dict
+        +ask(query, thread_id) str
+        +stream_updates(query, thread_id)
+        +mermaid() str
+        +new_thread_id()$ str
+    }
+    class Settings {
+        &lt;&lt;dataclass&gt;&gt;
+        +str openai_api_key
+        +str tavily_api_key
+        +str serpapi_api_key
+        +str chat_model
+        +float temperature
+        +from_env()$ Settings
+        +require_keys() None
+    }
+    class MissingAPIKeyError {
+        &lt;&lt;exception&gt;&gt;
+    }
+    class TravelPlannerState {
+        &lt;&lt;TypedDict&gt;&gt;
+        +list messages
+        +str user_query
+        +list tasks
+        +bool requires_synthesis
+        +list agent_results
+        +str final_answer
+        +list search_messages
+        +list planner_messages
+    }
+    class ClassificationResult {
+        &lt;&lt;Pydantic model&gt;&gt;
+        +List~AgentTask~ tasks
+        +bool requires_synthesis
+    }
+    class AgentTask {
+        &lt;&lt;Pydantic model&gt;&gt;
+        +str source
+        +str user_query
+        +str focus
+    }
+    class FlightSearchInput {
+        &lt;&lt;Pydantic model&gt;&gt;
+        +str departure_airport
+        +str arrival_airport
+        +str outbound_date
+        +str return_date
+        +int adults
+        +int children
+        +int stops
+    }
+    class HotelSearchInput {
+        &lt;&lt;Pydantic model&gt;&gt;
+        +str location
+        +str check_in_date
+        +str check_out_date
+        +int adults
+        +int children
+        +int rooms
+        +str hotel_class
+        +int sort_by
+    }
+    class RuntimeError
+    class BaseModel
+    RuntimeError &lt;|-- MissingAPIKeyError
+    BaseModel &lt;|-- AgentTask
+    BaseModel &lt;|-- ClassificationResult
+    BaseModel &lt;|-- FlightSearchInput
+    BaseModel &lt;|-- HotelSearchInput
+    TravelPlanner --&gt; Settings : reads keys from
+    TravelPlanner ..&gt; MissingAPIKeyError : may raise
+    TravelPlanner --&gt; TravelPlannerState : its graph works on
+    ClassificationResult *-- AgentTask : contains 1 or 2
+    TravelPlannerState o-- AgentTask : tasks
+</pre>
+  </div>
+  <p class="caption"><code>$</code> after a method means it belongs to the class itself, not to one object: you call <code>Settings.from_env()</code>, not <code>my_settings.from_env()</code>.</p>
+
+  <div class="grid-2">
+    <div class="node">
+      <h3>TravelPlanner</h3>
+      <p>The one class you use from outside. Creating it builds everything; <code>ask()</code> returns just the answer text, <code>run()</code> returns the whole state dictionary.</p>
+      <span class="where">graph.py</span>
+    </div>
+    <div class="node">
+      <h3>Settings</h3>
+      <p>Holds your keys and model name. <code>frozen=True</code> means its values can't be changed after creation, which prevents accidents.</p>
+      <span class="where">config.py</span>
+    </div>
+    <div class="node">
+      <h3>MissingAPIKeyError</h3>
+      <p>A custom error type. Because it has its own name, <code>main.py</code> can catch exactly this error and print a friendly message.</p>
+      <span class="where">config.py</span>
+    </div>
+    <div class="node">
+      <h3>TravelPlannerState</h3>
+      <p>Describes which keys the shared state dictionary has. It's a description for LangGraph and your editor; at runtime the state is a plain <code>dict</code>.</p>
+      <span class="where">graph.py</span>
+    </div>
+    <div class="node">
+      <h3>AgentTask, ClassificationResult</h3>
+      <p>The form the router AI must fill in. Pydantic checks the AI's answer has the right fields and types, for example that <code>source</code> is one of the two agent names.</p>
+      <span class="where">graph.py</span>
+    </div>
+    <div class="node">
+      <h3>FlightSearchInput, HotelSearchInput</h3>
+      <p>Describe the arguments of each tool. The AI reads the <code>description</code> of every field to know what to send.</p>
+      <span class="where">tools.py</span>
+    </div>
+  </div>
+  <div class="tip"><strong>Where are the agents?</strong> They aren't classes in this project. Agents are built by <em>functions</em> (<code>create_llm()</code>, <code>create_itinerary_tool()</code>) that return objects from LangChain, and the graph nodes are functions defined inside <code>build_travel_planner_graph()</code>.</div>
+</section>
+
+<!-- 8 -->
+<section id="python">
+  <div class="sec-head"><span class="eyebrow">Stop 8</span><h2>Python ideas used in this code</h2></div>
+  <p class="prose">Open any card to see a real line from the project and what it means.</p>
+
+  <div>
+    <details class="concept" id="c-import">
+      <summary><span class="name">Imports</span><span class="file">every file</span></summary>
+      <div class="concept-body">
+<pre class="code"><span class="k">from</span> langchain_openai <span class="k">import</span> ChatOpenAI
+<span class="k">from</span> travel_planner.config <span class="k">import</span> Settings</pre>
+        <p>Load a name from another module so you can use it here. The first line loads from an installed package (that's why it must be in <code>requirements.txt</code>). The second loads from our own folder <code>travel_planner/config.py</code>.</p>
+      </div>
+    </details>
+
+    <details class="concept">
+      <summary><span class="name">Type hints</span><span class="file">every file</span></summary>
+      <div class="concept-body">
+<pre class="code"><span class="k">def</span> create_itinerary_tool(llm: BaseChatModel, internet_search: BaseTool) -&gt; BaseTool:</pre>
+        <p>The parts after <code>:</code> and <code>-&gt;</code> say what type each value should be. Python does <em>not</em> enforce them while running; they help you and PyCharm understand the code and catch mistakes. <code>Optional[str]</code> means "a string or <code>None</code>".</p>
+        <p><code>from __future__ import annotations</code> at the top of each file lets newer hint styles like <code>str | None</code> work everywhere.</p>
+      </div>
+    </details>
+
+    <details class="concept">
+      <summary><span class="name">Dataclass and @classmethod</span><span class="file">config.py</span></summary>
+      <div class="concept-body">
+<pre class="code"><span class="k">@dataclass</span>(frozen=<span class="k">True</span>)
+<span class="k">class</span> Settings:
+    openai_api_key: str | None
+    chat_model: str = DEFAULT_CHAT_MODEL
+
+    <span class="k">@classmethod</span>
+    <span class="k">def</span> from_env(cls) -&gt; <span class="s">"Settings"</span>:
+        ...
+        <span class="k">return</span> cls(openai_api_key=..., ...)</pre>
+        <p><code>@dataclass</code> writes the boring parts of a class for you, such as the <code>__init__</code> that stores each field. <code>@classmethod</code> makes a method you call on the class itself; <code>cls</code> is the class, so <code>cls(...)</code> creates a new <code>Settings</code>. This is a common pattern for "create an object from somewhere", here from environment variables.</p>
+      </div>
+    </details>
+
+    <details class="concept">
+      <summary><span class="name">Pydantic models and Field</span><span class="file">tools.py, graph.py</span></summary>
+      <div class="concept-body">
+<pre class="code"><span class="k">class</span> AgentTask(BaseModel):
+    source: Literal[<span class="s">"search_agent_node"</span>, <span class="s">"planner_agent_node"</span>]
+    user_query: str
+    focus: str = Field(default=<span class="s">""</span>, description=<span class="s">"What aspect this agent should focus on"</span>)</pre>
+        <p>A class that <em>checks</em> its data. If the AI returns <code>source="hotel_agent"</code>, Pydantic rejects it because <code>Literal[...]</code> allows only those two strings. <code>Field(...)</code> sets a default and a description the AI reads. <code>Field(...)</code> with three dots means "required, no default".</p>
+      </div>
+    </details>
+
+    <details class="concept">
+      <summary><span class="name">TypedDict, Annotated and reducers</span><span class="file">graph.py</span></summary>
+      <div class="concept-body">
+<pre class="code"><span class="k">class</span> TravelPlannerState(TypedDict, total=<span class="k">False</span>):
+    agent_results: Annotated[List[dict], extend_or_reset]
+    final_answer: str</pre>
+        <p><code>TypedDict</code> describes a dictionary's keys. <code>Annotated[type, extra]</code> attaches extra info to a type; LangGraph uses it to learn how to <em>combine</em> updates. For <code>agent_results</code>, the extra is the function <code>extend_or_reset</code>, called a reducer:</p>
+<pre class="code"><span class="k">def</span> extend_or_reset(existing, update):
+    <span class="k">if</span> update <span class="k">is None</span>:
+        <span class="k">return</span> []                         <span class="c"># None means "clear the list"</span>
+    <span class="k">return</span> (existing <span class="k">or</span> []) + list(update)  <span class="c"># otherwise append</span></pre>
+        <p>So when both agents return a result at the same time, both are appended instead of one overwriting the other. Keys without a reducer, like <code>final_answer</code>, are simply replaced.</p>
+      </div>
+    </details>
+
+    <details class="concept">
+      <summary><span class="name">Decorators like @tool</span><span class="file">tools.py, agents.py</span></summary>
+      <div class="concept-body">
+<pre class="code"><span class="k">@tool</span>(args_schema=HotelSearchInput)
+<span class="k">def</span> search_hotels(location: str, check_in_date: str, ...) -&gt; str:
+    <span class="s">"""Search for hotels in a location (Google Hotels via SerpAPI)."""</span></pre>
+        <p>A line starting with <code>@</code> wraps the function below it. <code>@tool</code> turns a normal function into a LangChain <em>tool object</em> that the AI can be told about. The tool's name comes from the function name, and its description comes from the docstring (the text in triple quotes), so docstrings matter here.</p>
+      </div>
+    </details>
+
+    <details class="concept">
+      <summary><span class="name">Functions inside functions (closures)</span><span class="file">graph.py, agents.py</span></summary>
+      <div class="concept-body">
+<pre class="code"><span class="k">def</span> build_travel_planner_graph(llm, search_tools, planner_tools, checkpointer=<span class="k">None</span>):
+    search_model = llm.bind_tools(search_tools)
+
+    <span class="k">def</span> search_agent_node(state):
+        response = search_model.invoke(...)   <span class="c"># uses search_model from outside</span>
+        ...</pre>
+        <p>A function defined inside another function can use the outer function's variables, even after the outer one has finished. That's how every node gets access to <code>llm</code> and the tools without global variables. It also lets the tests pass in a fake AI instead of OpenAI.</p>
+      </div>
+    </details>
+
+    <details class="concept">
+      <summary><span class="name">dict.get() and default values</span><span class="file">graph.py</span></summary>
+      <div class="concept-body">
+<pre class="code">history = list(state.get(<span class="s">"search_messages"</span>) <span class="k">or</span> [])</pre>
+        <p><code>state["key"]</code> crashes if the key is missing; <code>state.get("key")</code> returns <code>None</code> instead. <code>x or []</code> means "use <code>x</code>, but if it's empty or <code>None</code>, use an empty list". Together they make the code safe when a value hasn't been set yet.</p>
+      </div>
+    </details>
+
+    <details class="concept">
+      <summary><span class="name">List and dict comprehensions</span><span class="file">graph.py, tools.py</span></summary>
+      <div class="concept-body">
+<pre class="code">search_tools_by_name = {t.name: t <span class="k">for</span> t <span class="k">in</span> search_tools}</pre>
+        <p>A one-line loop that builds a collection. This builds a dictionary like <code>{"search_flights": &lt;tool&gt;, "search_hotels": &lt;tool&gt;}</code>, so the tool node can find a tool by the name the AI asked for. The same thing written as a normal loop:</p>
+<pre class="code">search_tools_by_name = {}
+<span class="k">for</span> t <span class="k">in</span> search_tools:
+    search_tools_by_name[t.name] = t</pre>
+      </div>
+    </details>
+
+    <details class="concept">
+      <summary><span class="name">f-strings</span><span class="file">everywhere</span></summary>
+      <div class="concept-body">
+<pre class="code">sub_query += f<span class="s">"\n\nFocus on: {task.focus}"</span></pre>
+        <p>A string starting with <code>f</code> fills in anything inside <code>{ }</code> with its value. <code>\n</code> is a new line.</p>
+      </div>
+    </details>
+
+    <details class="concept">
+      <summary><span class="name">try / except</span><span class="file">tools.py, graph.py, main.py</span></summary>
+      <div class="concept-body">
+<pre class="code"><span class="k">try</span>:
+    results = GoogleSearch(params).get_dict()
+    ...
+<span class="k">except</span> Exception <span class="k">as</span> exc:
+    <span class="k">return</span> json.dumps({<span class="s">"error"</span>: str(exc)})</pre>
+        <p>Run the code under <code>try</code>; if anything goes wrong (no internet, bad key), jump to <code>except</code> instead of crashing. Here the error is turned into text the AI can read and explain to you.</p>
+      </div>
+    </details>
+
+    <details class="concept">
+      <summary><span class="name">Generators and yield</span><span class="file">graph.py</span></summary>
+      <div class="concept-body">
+<pre class="code"><span class="k">def</span> stream_updates(self, query, thread_id=<span class="k">None</span>, ...):
+    <span class="k">for</span> chunk <span class="k">in</span> self.graph.stream(...):
+        <span class="k">for</span> node, update <span class="k">in</span> chunk.items():
+            <span class="k">yield</span> node, update</pre>
+        <p><code>yield</code> hands back one value at a time while the function keeps running. <code>main.py</code> uses this with <code>-v</code> to print each node's name as soon as it finishes, instead of waiting for the whole answer.</p>
+      </div>
+    </details>
+
+    <details class="concept">
+      <summary><span class="name">self and methods</span><span class="file">graph.py</span></summary>
+      <div class="concept-body">
+<pre class="code">planner = TravelPlanner()        <span class="c"># runs __init__(self, ...)</span>
+planner.ask(<span class="s">"Best time to visit Jaipur?"</span>)  <span class="c"># inside ask, self is planner</span></pre>
+        <p><code>__init__</code> runs once when the object is created and stores things on <code>self</code>, like <code>self.graph</code>. Every method receives the object as its first argument, <code>self</code>, so <code>ask()</code> can call <code>self.run()</code>, which uses <code>self.graph</code>.</p>
+      </div>
+    </details>
+
+    <details class="concept">
+      <summary><span class="name">if __name__ == "__main__"</span><span class="file">main.py</span></summary>
+      <div class="concept-body">
+<pre class="code"><span class="k">if</span> __name__ == <span class="s">"__main__"</span>:
+    sys.exit(main())</pre>
+        <p>True only when you run the file directly (<code>python main.py</code>), not when another file imports it. <code>sys.exit(0)</code> means success; <code>1</code> means an error, which scripts and terminals can check.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- 9 -->
+<section id="reading">
+  <div class="sec-head"><span class="eyebrow">Stop 9</span><h2>Suggested reading order</h2></div>
+  <ol class="reading">
+    <li><code>config.py</code>: short, and shows a class, a dataclass and a custom error.</li>
+    <li><code>tools.py</code>: plain functions that call an API and return JSON. Ignore the long dictionaries; follow <code>params</code> → <code>GoogleSearch</code> → <code>output</code>.</li>
+    <li><code>prompts.py</code>: skim it. It's English instructions for the AI, and it explains what each agent is supposed to do.</li>
+    <li><code>agents.py</code>: how the AI model and the itinerary agent are created.</li>
+    <li><code>graph.py</code>: read the module docstring first, then each node function, then the "Wiring" block near the end. Keep the Stop 4 diagram open next to it.</li>
+    <li><code>main.py</code>: how it all gets started from the terminal.</li>
+    <li><code>tests/test_graph.py</code>: shows the graph running with a fake AI. Set a breakpoint in a node and run <code>pytest</code> from PyCharm to watch the state change step by step.</li>
+  </ol>
+  <div class="tip"><strong>Try this.</strong> Run <code>python main.py -v "What is the best time to visit Jaipur?"</code>. The ✓ lines show the nodes from Stop 4 as they run, and the end shows the tasks and agent results from Stop 5.</div>
+
+  <h3>Words you'll see</h3>
+  <dl class="glossary">
+    <dt>LLM</dt><dd>Large language model, the AI (here an OpenAI model) that reads text and writes text.</dd>
+    <dt>Agent</dt><dd>An LLM with instructions (a prompt) and tools it may call.</dd>
+    <dt>Tool</dt><dd>A Python function the AI can ask us to run, like <code>search_hotels</code>.</dd>
+    <dt>Prompt</dt><dd>The instructions sent to the AI before your question.</dd>
+    <dt>State</dt><dd>The shared dictionary every node reads from and writes to.</dd>
+    <dt>Node</dt><dd>One step in the graph; a Python function.</dd>
+    <dt>Edge</dt><dd>A connection that decides which node runs next.</dd>
+    <dt>Send</dt><dd>LangGraph's way to start a node with its own input, so several nodes can run in parallel.</dd>
+    <dt>Checkpointer</dt><dd>Saves the state after each turn, so follow-up questions in the same <code>thread_id</code> remember earlier ones.</dd>
+    <dt>thread_id</dt><dd>The name of one conversation. Same id means shared memory.</dd>
+    <dt>Reducer</dt><dd>A function that decides how a new value is combined with the old one (append, clear, or replace).</dd>
+  </dl>
+</section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+  // Render the diagrams, matching the reader's light/dark setting.
+  const dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  mermaid.initialize({ startOnLoad: true, theme: dark ? "dark" : "default", securityLevel: "strict" });
+</script>
+</body>
+</html>
