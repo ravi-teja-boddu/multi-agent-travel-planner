@@ -1,0 +1,23 @@
+# Multi-Agent Travel Planner - runtime dependencies
+# Requires Python 3.10+ (LangChain 1.x / LangGraph 1.x / deepagents).
+# Tested with the versions noted in each comment.
+
+# Agent framework
+langgraph>=1.2,<2              # graph orchestration, Send API, checkpointing (tested 1.2.20)
+langchain>=1.4,<2              # create_agent, message classes (tested 1.4.9)
+langchain-core>=1.7,<2         # tools, base chat model (tested 1.7.6)
+deepagents>=0.7,<1             # deep-research itinerary agent (tested 0.7.34)
+
+# LLM provider
+langchain-openai>=1.7,<2       # ChatOpenAI (tested 1.7.4)
+
+# Web search (itinerary research, general travel questions)
+langchain-tavily>=0.2.18,<1    # TavilySearch tool (tested 0.2.18)
+tavily-python>=0.8,<1          # Tavily client (tested 0.8.5)
+
+# Flight & hotel search (SerpAPI Google Flights / Google Hotels)
+google-search-results>=2.4.2,<3   # provides the `serpapi` module (tested 2.4.2)
+
+# Utilities
+pydantic>=2.7,<3               # tool input schemas, structured router output (tested 2.14.3)
+python-dotenv>=1.0             # loads API keys from .env (tested 1.2.4)
